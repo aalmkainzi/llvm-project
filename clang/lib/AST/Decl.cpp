@@ -6126,3 +6126,4 @@ bool clang::hasArmZT0State(const FunctionDecl *FD) {
                    FunctionType::ARM_None) ||
          (FD->hasAttr<ArmNewAttr>() && FD->getAttr<ArmNewAttr>()->isNewZT0());
 }
+

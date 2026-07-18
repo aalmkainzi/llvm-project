@@ -1944,6 +1944,20 @@ Parser::DeclGroupPtrTy Parser::ParseDeclaration(DeclaratorContext Context,
     ProhibitAttributes(DeclSpecAttrs);
     SingleDecl = ParseStaticAssertDeclaration(DeclEnd);
     break;
+
+  case tok::kw__Nameprefix:
+    // TODO either new nameprefix decl, or 
+    ProhibitAttributes(DeclAttrs);
+    ProhibitAttributes(DeclSpecAttrs);
+    return ParseNameprefixDecl(Context, DeclEnd);
+  case tok::kw__Apply:
+    ProhibitAttributes(DeclAttrs);
+    ProhibitAttributes(DeclSpecAttrs);
+    return ParseNameprefixApplyScope(Context, DeclEnd);
+  case tok::kw__Capture:
+    ProhibitAttributes(DeclAttrs);
+    ProhibitAttributes(DeclSpecAttrs);
+    return ParseNameprefixCaptureScope(Context, DeclEnd);
   default:
     return ParseSimpleDeclaration(Context, DeclEnd, DeclAttrs, DeclSpecAttrs,
                                   true, nullptr, DeclSpecStart);
@@ -2002,6 +2016,26 @@ Parser::DeclGroupPtrTy Parser::ParseSimpleDeclaration(
     DS.SetRangeStart(*DeclSpecStart);
 
   return ParseDeclGroup(DS, Context, DeclAttrs, TemplateInfo, &DeclEnd, FRI);
+}
+
+Parser::DeclGroupPtrTy Parser::ParseNameprefixDecl(DeclaratorContext Context,
+                    SourceLocation &DeclEnd,
+                    SourceLocation InlineLoc)
+{
+  assert(Tok.is(tok::kw__Nameprefix) && "Not a _Nameprefix!");
+  
+}
+
+Parser::DeclGroupPtrTy Parser::ParseNameprefixApplyScope(DeclaratorContext Context,
+                                                         SourceLocation &DeclEnd,
+                                                         SourceLocation InlineLoc)
+{
+}
+
+Parser::DeclGroupPtrTy Parser::ParseNameprefixCaptureScope(DeclaratorContext Context,
+                                                         SourceLocation &DeclEnd,
+                                                         SourceLocation InlineLoc)
+{
 }
 
 bool Parser::MightBeDeclarator(DeclaratorContext Context) {

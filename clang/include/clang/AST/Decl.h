@@ -704,6 +704,9 @@ public:
   }
 };
 
+class NameprefixDecl : public NamedDecl {
+};
+
 class VarDecl;
 
 /// Represent the declaration of a variable (in which case it is

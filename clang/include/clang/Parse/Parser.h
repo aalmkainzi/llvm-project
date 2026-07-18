@@ -3236,6 +3236,18 @@ private:
                            ParsedAttributes &attrs,
                            BalancedDelimiterTracker &Tracker);
 
+  DeclGroupPtrTy ParseNameprefixDecl(DeclaratorContext Context,
+                                SourceLocation &DeclEnd,
+                                SourceLocation InlineLoc = SourceLocation());
+
+  DeclGroupPtrTy ParseNameprefixApplyScope(DeclaratorContext Context,
+                            SourceLocation &DeclEnd,
+                            SourceLocation InlineLoc = SourceLocation());
+
+  DeclGroupPtrTy ParseNameprefixCaptureScope(DeclaratorContext Context,
+                                           SourceLocation &DeclEnd,
+                                           SourceLocation InlineLoc = SourceLocation());
+
   /// ParseLinkage - We know that the current token is a string_literal
   /// and just before that, that extern was seen.
   ///

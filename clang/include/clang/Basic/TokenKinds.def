@@ -364,6 +364,9 @@ KEYWORD(__ob_trap                   , KEYALL)
 
 // C2y
 UNARY_EXPR_OR_TYPE_TRAIT(_Countof, CountOf, KEYNOCXX)
+C23_KEYWORD(_Nameprefix             , 0)
+C23_KEYWORD(_Apply                  , 0)
+C23_KEYWORD(_Capture                , 0)
 
 // C++ 2.11p1: Keywords.
 KEYWORD(asm                         , KEYCXX|KEYGNU)

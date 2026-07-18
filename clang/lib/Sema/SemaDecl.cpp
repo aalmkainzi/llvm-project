@@ -32,6 +32,7 @@
 #include "clang/Basic/Builtins.h"
 #include "clang/Basic/DiagnosticComment.h"
 #include "clang/Basic/HLSLRuntime.h"
+#include "clang/Basic/IdentifierTable.h"
 #include "clang/Basic/PartialDiagnostic.h"
 #include "clang/Basic/SourceManager.h"
 #include "clang/Basic/TargetInfo.h"
@@ -21284,6 +21285,10 @@ void Sema::ActOnPragmaWeakAlias(IdentifierInfo* Name,
   } else {
     (void)WeakUndeclaredIdentifiers[AliasName].insert(W);
   }
+}
+
+void Sema::ActOnNameprefixDecl(Scope *NamespcScope) {
+  PushOnScopeChains(Namespc, DeclRegionScope);
 }
 
 Sema::FunctionEmissionStatus Sema::getEmissionStatus(const FunctionDecl *FD,
