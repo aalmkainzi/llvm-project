@@ -2322,6 +2322,12 @@ ExprResult Parser::ParseUnaryExprOrTypeTraitExpression() {
     if (!getLangOpts().C2y)
       Diag(OpTok, diag::ext_c2y_feature) << OpTok.getName();
     break;
+  case tok::kw_typeof_unqual:
+    ExprKind = UETT_TypeOfUnqual;
+    break;
+  case tok::kw_typeof:
+    ExprKind = UETT_TypeOf;
+    break;
   default:
     break;
   }

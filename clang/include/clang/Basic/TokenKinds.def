@@ -443,8 +443,8 @@ KEYWORD(char8_t                     , CHAR8SUPPORT)
 KEYWORD(_Float16                    , KEYALL)
 
 // C23 keywords
-C23_KEYWORD(typeof                  , KEYGNU)
-C23_KEYWORD(typeof_unqual           , 0)
+// C23_KEYWORD(typeof                  , KEYGNU)
+// C23_KEYWORD(typeof_unqual           , 0)
 
 // '_Defer' TS
 KEYWORD(_Defer                      , KEYDEFERTS)

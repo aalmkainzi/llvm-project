@@ -78,6 +78,16 @@ def SizeOf : UnaryExprOrTypeTrait {
   let KeyFlags = [KEYALL];
 }
 
+def TypeOf : UnaryExprOrTypeTrait {
+  let Spelling = "typeof";
+  let KeyFlags = [KEYGNU];
+}
+
+def TypeOfUnqual : UnaryExprOrTypeTrait {
+  let Spelling = "typeof_unqual";
+  let KeyFlags = [KEYC23];
+}
+
 def DataSizeOf : UnaryExprOrTypeTrait {
   let Spelling = "__datasizeof";
 }
