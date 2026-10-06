@@ -7922,6 +7922,24 @@ ExprResult Sema::PerformQualificationConversion(Expr *E, QualType Ty,
   return ImpCastExprToType(E, Ty, CK, VK, /*BasePath=*/nullptr, CCK);
 }
 
+// If C2y allows non-null constexpr pointers, this function should always return
+// false.
+static bool MaybeRejectNullPointers(APValue &Val) {
+  if (Val.isStruct()) {
+    unsigned int N = Val.getStructNumFields();
+    for (unsigned int i = 0; i < N; i++) {
+      if (MaybeRejectNullPointers(Val.getStructField(i)))
+        return true;
+    }
+  } else if (Val.isUnion()) {
+    APValue UV = Val.getUnionValue();
+    return MaybeRejectNullPointers(UV);
+  } else if (Val.isLValue() && !Val.isNullPointer()) {
+    return true;
+  }
+  return false;
+}
+
 ExprResult InitializationSequence::Perform(Sema &S,
                                            const InitializedEntity &Entity,
                                            const InitializationKind &Kind,
@@ -8580,11 +8598,12 @@ ExprResult InitializationSequence::Perform(Sema &S,
         // constant expression, or an arithmetic constant expression,
         // respectively.
         Expr::EvalResult ER;
-        if (Entity.getType()->getAs<PointerType>() &&
-            CurInit.get()->EvaluateAsRValue(ER, S.Context) &&
-            (ER.Val.isLValue() && !ER.Val.isNullPointer())) {
-          S.Diag(Kind.getLocation(), diag::err_c23_constexpr_pointer_not_null);
-          return ExprError();
+        if (CurInit.get()->EvaluateAsRValue(ER, S.Context)) {
+          if (MaybeRejectNullPointers(ER.Val)) {
+            S.Diag(Kind.getLocation(),
+                   diag::err_c23_constexpr_pointer_not_null);
+            return ExprError();
+          }
         }
       }
 

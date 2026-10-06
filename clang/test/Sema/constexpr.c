@@ -470,3 +470,15 @@ struct S2 {
 const struct S2 s2[2] = {{{"foo"}, 1}, [0].L[2] = 'x'}; // expected-warning {{initializer partially overrides prior initialization of this subobject}} \
                                                         // expected-note {{previous initialization is here}}
 static_assert(s2[0].L[2] == 'x');// expected-warning {{folding it to a constant is a GNU extension}}
+
+// gh121694
+const int a = 0;
+struct C { const int *p; };
+constexpr struct C c1 = {&a}; // expected-error{{constexpr pointer initializer is not null}}
+constexpr struct C c2 = (struct C){&a}; // expected-error{{constexpr pointer initializer is not null}}
+
+union U { const int *p; int x; };
+constexpr union U u1 = {.p = &a}; // expected-error{{constexpr pointer initializer is not null}}
+constexpr union U u2 = (union U){.p = &a}; // expected-error{{constexpr pointer initializer is not null}}
+constexpr union U u3 = {.x = 1};
+constexpr union U u4 = (union U){.x = 1};
