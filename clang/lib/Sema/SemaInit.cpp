@@ -7924,16 +7924,16 @@ ExprResult Sema::PerformQualificationConversion(Expr *E, QualType Ty,
 
 // If C2y allows non-null constexpr pointers, this function should always return
 // false.
-static bool MaybeRejectNullPointers(APValue &Val) {
+static bool MaybeRejectNonNullPointers(APValue &Val) {
   if (Val.isStruct()) {
     unsigned int N = Val.getStructNumFields();
     for (unsigned int i = 0; i < N; i++) {
-      if (MaybeRejectNullPointers(Val.getStructField(i)))
+      if (MaybeRejectNonNullPointers(Val.getStructField(i)))
         return true;
     }
   } else if (Val.isUnion()) {
     APValue UV = Val.getUnionValue();
-    return MaybeRejectNullPointers(UV);
+    return MaybeRejectNonNullPointers(UV);
   } else if (Val.isLValue() && !Val.isNullPointer()) {
     return true;
   }
@@ -8599,7 +8599,7 @@ ExprResult InitializationSequence::Perform(Sema &S,
         // respectively.
         Expr::EvalResult ER;
         if (CurInit.get()->EvaluateAsRValue(ER, S.Context)) {
-          if (MaybeRejectNullPointers(ER.Val)) {
+          if (MaybeRejectNonNullPointers(ER.Val)) {
             S.Diag(Kind.getLocation(),
                    diag::err_c23_constexpr_pointer_not_null);
             return ExprError();
