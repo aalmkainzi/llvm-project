@@ -7927,16 +7927,16 @@ ExprResult Sema::PerformQualificationConversion(Expr *E, QualType Ty,
 // explicit initializer value for it shall be null, an integer
 // constant expression, or an arithmetic constant expression,
 // respectively.
-static bool MaybeRejectNonNullPointersInConstexprContext(APValue &Val) {
+static bool maybeRejectNonNullPointersInConstexprContext(const APValue &Val) {
   if (Val.isStruct()) {
     unsigned int N = Val.getStructNumFields();
-    for (unsigned int i = 0; i < N; i++) {
-      if (MaybeRejectNonNullPointersInConstexprContext(Val.getStructField(i)))
+    for (unsigned int I = 0; I < N; I++) {
+      if (maybeRejectNonNullPointersInConstexprContext(Val.getStructField(I)))
         return true;
     }
   } else if (Val.isUnion()) {
-    APValue &UV = Val.getUnionValue();
-    return MaybeRejectNonNullPointersInConstexprContext(UV);
+    const APValue &UV = Val.getUnionValue();
+    return maybeRejectNonNullPointersInConstexprContext(UV);
   } else if (Val.isLValue() && !Val.isNullPointer()) {
     return true;
   }
@@ -8597,7 +8597,7 @@ ExprResult InitializationSequence::Perform(Sema &S,
 
         Expr::EvalResult ER;
         if (CurInit.get()->EvaluateAsRValue(ER, S.Context)) {
-          if (MaybeRejectNonNullPointersInConstexprContext(ER.Val)) {
+          if (maybeRejectNonNullPointersInConstexprContext(ER.Val)) {
             S.Diag(Kind.getLocation(),
                    diag::err_c23_constexpr_pointer_not_null);
             return ExprError();
