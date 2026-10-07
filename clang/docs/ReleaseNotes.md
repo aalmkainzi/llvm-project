@@ -546,6 +546,8 @@ features cannot lower the translation-unit ABI level;
 
 - Improve Clang diagnoses when unary `__imag` operator with non-complex type operand is used as lvalue. (#GH222383)
 
+- Clang now rejects initializing a constexpr struct/union variable with a compound literal that contains non-null pointers. (#GH121694)
+
 ### Improvements to Clang's time-trace
 
 ### Improvements to Coverage Mapping
