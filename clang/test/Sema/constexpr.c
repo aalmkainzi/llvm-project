@@ -478,6 +478,10 @@ constexpr struct C c1 = {&a}; // expected-error{{constexpr pointer initializer i
 constexpr struct C c2 = (struct C){&a}; // expected-error{{constexpr pointer initializer is not null}}
 constexpr struct C c3 = (struct C){nullptr};
 
+nullptr_t woo;
+constexpr struct C c4 = {woo};
+constexpr struct C c4 = (struct C){woo};
+
 union U { const int *p; int x; };
 constexpr union U u1 = {.p = &a}; // expected-error{{constexpr pointer initializer is not null}}
 constexpr union U u2 = (union U){.p = &a}; // expected-error{{constexpr pointer initializer is not null}}
