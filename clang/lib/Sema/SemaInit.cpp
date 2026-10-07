@@ -7922,18 +7922,21 @@ ExprResult Sema::PerformQualificationConversion(Expr *E, QualType Ty,
   return ImpCastExprToType(E, Ty, CK, VK, /*BasePath=*/nullptr, CCK);
 }
 
-// If C2y allows non-null constexpr pointers, this function should always return
-// false.
-static bool MaybeRejectNonNullPointers(APValue &Val) {
+// C23 6.7.1p6: If an object or subobject declared with storage-class
+// specifier constexpr has pointer, integer, or arithmetic type, any
+// explicit initializer value for it shall be null, an integer
+// constant expression, or an arithmetic constant expression,
+// respectively.
+static bool MaybeRejectNonNullPointersInConstexprContext(APValue &Val) {
   if (Val.isStruct()) {
     unsigned int N = Val.getStructNumFields();
     for (unsigned int i = 0; i < N; i++) {
-      if (MaybeRejectNonNullPointers(Val.getStructField(i)))
+      if (MaybeRejectNonNullPointersInConstexprContext(Val.getStructField(i)))
         return true;
     }
   } else if (Val.isUnion()) {
     APValue UV = Val.getUnionValue();
-    return MaybeRejectNonNullPointers(UV);
+    return MaybeRejectNonNullPointersInConstexprContext(UV);
   } else if (Val.isLValue() && !Val.isNullPointer()) {
     return true;
   }
@@ -8592,14 +8595,9 @@ ExprResult InitializationSequence::Perform(Sema &S,
         CheckC23ConstexprInitConversion(S, SourceType, Entity.getType(),
                                         CurInit.get());
 
-        // C23 6.7.1p6: If an object or subobject declared with storage-class
-        // specifier constexpr has pointer, integer, or arithmetic type, any
-        // explicit initializer value for it shall be null, an integer
-        // constant expression, or an arithmetic constant expression,
-        // respectively.
         Expr::EvalResult ER;
         if (CurInit.get()->EvaluateAsRValue(ER, S.Context)) {
-          if (MaybeRejectNonNullPointers(ER.Val)) {
+          if (MaybeRejectNonNullPointersInConstexprContext(ER.Val)) {
             S.Diag(Kind.getLocation(),
                    diag::err_c23_constexpr_pointer_not_null);
             return ExprError();
