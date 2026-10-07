@@ -7935,7 +7935,7 @@ static bool MaybeRejectNonNullPointersInConstexprContext(APValue &Val) {
         return true;
     }
   } else if (Val.isUnion()) {
-    APValue UV = Val.getUnionValue();
+    APValue &UV = Val.getUnionValue();
     return MaybeRejectNonNullPointersInConstexprContext(UV);
   } else if (Val.isLValue() && !Val.isNullPointer()) {
     return true;
