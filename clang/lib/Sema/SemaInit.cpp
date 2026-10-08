@@ -7749,7 +7749,7 @@ static void DiagnoseNarrowingInInitList(Sema &S,
                                         QualType EntityType,
                                         const Expr *PostInit);
 
-static void CheckC23ConstexprInitConversion(Sema &S, QualType FromType,
+static bool CheckC23ConstexprInitConversion(Sema &S, QualType FromType,
                                             QualType ToType, Expr *Init);
 
 /// Provide warnings when std::move is used on construction.
@@ -8571,21 +8571,21 @@ ExprResult InitializationSequence::Perform(Sema &S,
       CurInit = CurInitExprRes;
 
       if (S.getLangOpts().C23 && initializingConstexprVariable(Entity)) {
-        CheckC23ConstexprInitConversion(S, SourceType, Entity.getType(),
-                                        CurInit.get());
-
-        // C23 6.7.1p6: If an object or subobject declared with storage-class
-        // specifier constexpr has pointer, integer, or arithmetic type, any
-        // explicit initializer value for it shall be null, an integer
-        // constant expression, or an arithmetic constant expression,
-        // respectively.
-        Expr::EvalResult ER;
-        if (Entity.getType()->getAs<PointerType>() &&
-            !CurInit.get()->isValueDependent() &&
-            CurInit.get()->EvaluateAsRValue(ER, S.Context) &&
-            (ER.Val.isLValue() && !ER.Val.isNullPointer())) {
-          S.Diag(Kind.getLocation(), diag::err_c23_constexpr_pointer_not_null);
-          return ExprError();
+        if (CheckC23ConstexprInitConversion(S, SourceType, Entity.getType(),
+                                            CurInit.get())) {
+          // C23 6.7.1p6: If an object or subobject declared with storage-class
+          // specifier constexpr has pointer, integer, or arithmetic type, any
+          // explicit initializer value for it shall be null, an integer
+          // constant expression, or an arithmetic constant expression,
+          // respectively.
+          Expr::EvalResult ER;
+          if (Entity.getType()->getAs<PointerType>() &&
+              CurInit.get()->EvaluateAsRValue(ER, S.Context) &&
+              (ER.Val.isLValue() && !ER.Val.isNullPointer())) {
+            S.Diag(Kind.getLocation(),
+                   diag::err_c23_constexpr_pointer_not_null);
+            return ExprError();
+          }
         }
       }
 
@@ -10013,7 +10013,7 @@ static void DiagnoseNarrowingInInitList(Sema &S,
              S.getLocForEndOfToken(PostInit->getEndLoc()), ")");
 }
 
-static void CheckC23ConstexprInitConversion(Sema &S, QualType FromType,
+static bool CheckC23ConstexprInitConversion(Sema &S, QualType FromType,
                                             QualType ToType, Expr *Init) {
   assert(S.getLangOpts().C23);
   ImplicitConversionSequence ICS = S.TryImplicitConversion(
@@ -10024,7 +10024,7 @@ static void CheckC23ConstexprInitConversion(Sema &S, QualType FromType,
       /*AllowObjCWritebackConversion=*/false);
 
   if (!ICS.isStandard())
-    return;
+    return true;
 
   APValue Value;
   QualType PreNarrowingType;
@@ -10036,20 +10036,22 @@ static void CheckC23ConstexprInitConversion(Sema &S, QualType FromType,
   case NK_Constant_Narrowing:
     S.Diag(Init->getBeginLoc(), diag::err_c23_constexpr_init_not_representable)
         << Value.getAsString(S.Context, PreNarrowingType) << ToType;
-    return;
+    return false;
 
   // Conversion to a narrower type.
   case NK_Type_Narrowing:
     S.Diag(Init->getBeginLoc(), diag::err_c23_constexpr_init_type_mismatch)
         << ToType << FromType;
-    return;
+    return false;
+
+  case NK_Dependent_Narrowing:
+    return false;
 
   // Since we only reuse narrowing check for C23 constexpr variables here, we're
   // not really interested in these cases.
-  case NK_Dependent_Narrowing:
   case NK_Variable_Narrowing:
   case NK_Not_Narrowing:
-    return;
+    return true;
   }
   llvm_unreachable("unhandled case in switch");
 }
