@@ -478,18 +478,28 @@ constexpr struct C c1 = {&a}; // expected-error{{constexpr pointer initializer i
 constexpr struct C c2 = (struct C){&a}; // expected-error{{constexpr pointer initializer is not null}}
 constexpr struct C c3 = (struct C){nullptr};
 
-typeof(nullptr) nullptr_t;
-nullptr_t woo;
-constexpr struct C c4 = {woo};
-constexpr struct C c4 = (struct C){woo};
-
 union U { const int *p; int x; };
 constexpr union U u1 = {.p = &a}; // expected-error{{constexpr pointer initializer is not null}}
 constexpr union U u2 = (union U){.p = &a}; // expected-error{{constexpr pointer initializer is not null}}
 constexpr union U u3 = {.x = 1};
 constexpr union U u4 = (union U){.x = 1};
 
-
 void f() {
   constexpr int *p2 = &a; // expected-error{{constexpr pointer initializer is not null}}
+}
+
+typedef typeof(nullptr) nullptr_t;
+
+constexpr nullptr_t woo1 = nullptr;
+constexpr struct C c4 = { woo1 };
+
+const nullptr_t woo2 = nullptr;
+constexpr struct C c5 = { woo2 };
+
+const nullptr_t woo3;
+constexpr struct C c6 = { woo3 };
+
+void func() {
+  const nullptr_t woo; // expected-warning{{default initialization of an object of type 'const nullptr_t' leaves the object uninitialized}}
+  constexpr struct C c1 = { woo };
 }

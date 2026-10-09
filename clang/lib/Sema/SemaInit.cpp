@@ -7922,22 +7922,30 @@ ExprResult Sema::PerformQualificationConversion(Expr *E, QualType Ty,
   return ImpCastExprToType(E, Ty, CK, VK, /*BasePath=*/nullptr, CCK);
 }
 
+static bool containsNonNullPointer(const APValue &Val) {
+  if (Val.isStruct()) {
+    unsigned int N = Val.getStructNumFields();
+    for (unsigned int I = 0; I < N; I++) {
+      if (containsNonNullPointer(Val.getStructField(I)))
+        return true;
+    }
+  } else if (Val.isUnion()) {
+    const APValue &UV = Val.getUnionValue();
+    return containsNonNullPointer(UV);
+  } else if (Val.isLValue() && !Val.isNullPointer()) {
+    return true;
+  }
+  return false;
+}
+
 // C23 6.7.1p6: If an object or subobject declared with storage-class
 // specifier constexpr has pointer, integer, or arithmetic type, any
 // explicit initializer value for it shall be null, an integer
 // constant expression, or an arithmetic constant expression,
 // respectively.
-static bool maybeRejectNonNullPointersInConstexprContext(const APValue &Val) {
-  if (Val.isStruct()) {
-    unsigned int N = Val.getStructNumFields();
-    for (unsigned int I = 0; I < N; I++) {
-      if (maybeRejectNonNullPointersInConstexprContext(Val.getStructField(I)))
-        return true;
-    }
-  } else if (Val.isUnion()) {
-    const APValue &UV = Val.getUnionValue();
-    return maybeRejectNonNullPointersInConstexprContext(UV);
-  } else if (Val.isLValue() && !Val.isNullPointer()) {
+static bool rejectConstexprValueInC(Sema &S, const APValue &Val) {
+  assert(S.getLangOpts().C23);
+  if (containsNonNullPointer(Val)) {
     return true;
   }
   return false;
@@ -8596,12 +8604,10 @@ ExprResult InitializationSequence::Perform(Sema &S,
                                         CurInit.get());
 
         Expr::EvalResult ER;
-        if (CurInit.get()->EvaluateAsRValue(ER, S.Context)) {
-          if (maybeRejectNonNullPointersInConstexprContext(ER.Val)) {
-            S.Diag(Kind.getLocation(),
-                   diag::err_c23_constexpr_pointer_not_null);
-            return ExprError();
-          }
+        if (CurInit.get()->EvaluateAsRValue(ER, S.Context) &&
+            rejectConstexprValueInC(S, ER.Val)) {
+          S.Diag(Kind.getLocation(), diag::err_c23_constexpr_pointer_not_null);
+          return ExprError();
         }
       }
 
