@@ -496,3 +496,10 @@ constexpr struct C c4 = { woo1 };
 const nullptr_t woo2 = nullptr;
 constexpr struct C c5 = { woo2 }; // expected-error{{constexpr variable 'c5' must be initialized by a constant expression}} expected-note{{this conversion is not allowed in a constant expression}}
 
+const nullptr_t woo3;
+constexpr struct C c6 = { woo3 }; // expected-error{{constexpr variable 'c6' must be initialized by a constant expression}} expected-note{{this conversion is not allowed in a constant expression}}
+
+void func() {
+  const nullptr_t woo; // expected-warning{{default initialization of an object of type 'const nullptr_t' leaves the object uninitialized}}
+  constexpr struct C c1 = { woo }; // expected-error{{constexpr variable 'c1' must be initialized by a constant expression}} expected-note{{this conversion is not allowed in a constant expression}}
+}
