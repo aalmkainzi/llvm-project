@@ -8575,8 +8575,8 @@ static bool checkCondition(Sema &S, const Expr *Cond,
 static bool checkConditionalNullPointer(Sema &S, ExprResult &NullExpr,
                                         QualType PointerTy) {
   if ((!PointerTy->isAnyPointerType() && !PointerTy->isBlockPointerType()) ||
-      !NullExpr.get()->isNullPointerConstant(S.Context,
-                                            Expr::NPC_ValueDependentIsNull))
+      (!NullExpr.get()->isNullPointerConstant(S.Context,
+                                            Expr::NPC_ValueDependentIsNull) && !NullExpr.get()->getType()->isNullPtrType()))
     return true;
 
   NullExpr = S.ImpCastExprToType(NullExpr.get(), PointerTy, CK_NullToPointer);
@@ -13161,8 +13161,8 @@ QualType Sema::CheckCompareOperands(ExprResult &LHS, ExprResult &RHS,
       LHS.get()->isNullPointerConstant(Context, Expr::NPC_ValueDependentIsNull);
   const Expr::NullPointerConstantKind RHSNullKind =
       RHS.get()->isNullPointerConstant(Context, Expr::NPC_ValueDependentIsNull);
-  bool LHSIsNull = LHSNullKind != Expr::NPCK_NotNull;
-  bool RHSIsNull = RHSNullKind != Expr::NPCK_NotNull;
+  bool LHSIsNull = (LHSNullKind != Expr::NPCK_NotNull) || LHS.get()->getType()->isNullPtrType();
+  bool RHSIsNull = (RHSNullKind != Expr::NPCK_NotNull) || RHS.get()->getType()->isNullPtrType();
 
   auto computeResultTy = [&]() {
     if (Opc != BO_Cmp)

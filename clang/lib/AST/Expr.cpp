@@ -4186,8 +4186,19 @@ Expr::isNullPointerConstant(ASTContext &Ctx,
     return NPCK_NotNull;
 
   // C++11/C23 nullptr_t is always a null pointer constant.
-  if (getType()->isNullPtrType())
+  if (getType()->isNullPtrType()) {
+    if (Ctx.getLangOpts().CPlusPlus)
+      return NPCK_CXX11_nullptr;
+
+    // C23 (need to make sure its constexpr)
+    if (const auto *DRE = dyn_cast<DeclRefExpr>(this)) {
+      if (const auto *VD = dyn_cast<VarDecl>(DRE->getDecl())) {
+        if (!VD->isConstexpr())
+          return NPCK_NotNull;
+      }
+    }
     return NPCK_CXX11_nullptr;
+  }
 
   if (const RecordType *UT = getType()->getAsUnionType())
     if (!Ctx.getLangOpts().CPlusPlus11 && UT &&

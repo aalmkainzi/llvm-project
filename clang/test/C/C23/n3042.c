@@ -20,7 +20,7 @@ void questionable_behaviors() {
 
   // This code is intended to be rejected by C and is accepted by C++. We filed
   // an NB comment asking for this to be changed, but WG14 declined.
-  (void)(1 ? val : 0);     // expected-error {{non-pointer operand type 'int' incompatible with nullptr}}
+  (void)(1 ? val : 0);     // expected-error {{incompatible operand types ('nullptr_t' and 'int')}}
   (void)(1 ? nullptr : 0); // expected-error {{non-pointer operand type 'int' incompatible with nullptr}}
 
   // This code is intended to be accepted by C and is rejected by C++. We filed

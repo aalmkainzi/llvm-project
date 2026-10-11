@@ -494,5 +494,5 @@ constexpr nullptr_t woo1 = nullptr;
 constexpr struct C c4 = { woo1 };
 
 const nullptr_t woo2 = nullptr;
-constexpr struct C c5 = { woo2 };
+constexpr struct C c5 = { woo2 }; // expected-error{{constexpr variable 'c5' must be initialized by a constant expression}} expected-note{{this conversion is not allowed in a constant expression}}
 

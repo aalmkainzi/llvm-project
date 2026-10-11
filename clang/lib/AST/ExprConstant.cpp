@@ -10423,6 +10423,7 @@ bool PointerExprEvaluator::VisitCastExpr(const CastExpr *E) {
                 << diag::ConstexprInvalidCastKind::CastFrom
                 << SubExpr->getType();
         } else
+          // if (!SubExpr->getType()->isNullPtrType())
           CCEDiag(E, diag::note_constexpr_invalid_cast)
               << diag::ConstexprInvalidCastKind::ThisConversionOrReinterpret
               << Info.Ctx.getLangOpts().CPlusPlus;
