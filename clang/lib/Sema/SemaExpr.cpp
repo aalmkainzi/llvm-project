@@ -8543,7 +8543,8 @@ bool Sema::DiagnoseConditionalForNull(const Expr *LHSExpr, const Expr *RHSExpr,
       return false;
   }
 
-  int DiagType = (NullKind == Expr::NPCK_CXX11_nullptr);
+  int DiagType = (NullKind == Expr::NPCK_CXX11_nullptr ||
+                  NullExpr->getType()->isNullPtrType());
   Diag(QuestionLoc, diag::err_typecheck_cond_incompatible_operands_null)
       << NonPointerExpr->getType() << DiagType
       << NonPointerExpr->getSourceRange();
@@ -13161,8 +13162,11 @@ QualType Sema::CheckCompareOperands(ExprResult &LHS, ExprResult &RHS,
       LHS.get()->isNullPointerConstant(Context, Expr::NPC_ValueDependentIsNull);
   const Expr::NullPointerConstantKind RHSNullKind =
       RHS.get()->isNullPointerConstant(Context, Expr::NPC_ValueDependentIsNull);
-  bool LHSIsNull = (LHSNullKind != Expr::NPCK_NotNull) || LHS.get()->getType()->isNullPtrType();
-  bool RHSIsNull = (RHSNullKind != Expr::NPCK_NotNull) || RHS.get()->getType()->isNullPtrType();
+
+  bool LHSIsNull = (LHSNullKind != Expr::NPCK_NotNull) ||
+                   LHS.get()->getType()->isNullPtrType();
+  bool RHSIsNull = (RHSNullKind != Expr::NPCK_NotNull) ||
+                   RHS.get()->getType()->isNullPtrType();
 
   auto computeResultTy = [&]() {
     if (Opc != BO_Cmp)

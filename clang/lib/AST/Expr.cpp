@@ -4190,11 +4190,12 @@ Expr::isNullPointerConstant(ASTContext &Ctx,
     if (Ctx.getLangOpts().CPlusPlus)
       return NPCK_CXX11_nullptr;
 
-    // C23 (need to make sure its constexpr)
-    if (const auto *DRE = dyn_cast<DeclRefExpr>(this))
-      if (const auto *VD = dyn_cast<VarDecl>(DRE->getDecl()))
-        if (!VD->isConstexpr())
-          return NPCK_NotNull;
+    // C23
+    if (const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(this))
+      if (const ValueDecl *VD = DRE->getDecl())
+        if (const VarDecl *VarD = dyn_cast<VarDecl>(VD))
+          if (!VarD->isConstexpr())
+            return NPCK_NotNull;
 
     return NPCK_CXX11_nullptr;
   }
