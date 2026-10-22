@@ -10302,7 +10302,16 @@ static bool EvaluatePointer(const Expr* E, LValue& Result, EvalInfo &Info,
                             bool InvalidBaseOK) {
   assert(!E->isValueDependent());
   assert(E->isPRValue() && E->getType()->hasPointerRepresentation());
-  return PointerExprEvaluator(Info, Result, InvalidBaseOK).Visit(E);
+  bool res = PointerExprEvaluator(Info, Result, InvalidBaseOK).Visit(E);
+
+  if (Info.getLangOpts().C23) {
+    if (const auto *VD = dyn_cast_if_present<VarDecl>(
+            Info.EvaluatingDecl.dyn_cast<const ValueDecl *>()))
+      if (VD->isConstexpr() && !Result.isNullPointer())
+        return false;
+  }
+
+  return res;
 }
 
 bool PointerExprEvaluator::VisitBinaryOperator(const BinaryOperator *E) {

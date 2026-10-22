@@ -60,6 +60,10 @@ using FixedPointSemantics = llvm::FixedPointSemantics;
 bool CheckNull(InterpState &S, CodePtr OpPC, const Pointer &Ptr,
                CheckSubobjectKind CSK);
 
+// Checks if a pointer is not null.
+bool CheckNotNull(InterpState &S, CodePtr OpPC, const Pointer &Ptr,
+                  CheckSubobjectKind CSK);
+
 /// Checks if Ptr is a one-past-the-end pointer.
 bool CheckSubobject(InterpState &S, CodePtr OpPC, const Pointer &Ptr,
                     CheckSubobjectKind CSK);
@@ -2172,6 +2176,11 @@ inline bool CheckNull(InterpState &S, CodePtr OpPC) {
     return S.noteUndefinedBehavior();
   }
   return true;
+}
+
+inline bool CheckNotNull(InterpState &S, CodePtr OpPC) {
+  const auto &Ptr = S.Stk.peek<Pointer>();
+  return CheckNotNull(S, OpPC, Ptr, CheckSubobjectKind::CSK_Field);
 }
 
 bool virtBaseHelper(InterpState &S, const CXXRecordDecl *Decl,

@@ -613,6 +613,17 @@ bool CheckNull(InterpState &S, CodePtr OpPC, const Pointer &Ptr,
   return false;
 }
 
+bool CheckNotNull(InterpState &S, CodePtr OpPC, const Pointer &Ptr,
+                  CheckSubobjectKind CSK) {
+  if (Ptr.isZero())
+    return true;
+  const SourceInfo &Loc = S.Current->getSource(OpPC);
+  S.FFDiag(Loc, diag::err_constexpr_var_requires_const_init)
+      << S.EvaluatingDecl;
+
+  return false;
+}
+
 bool CheckRange(InterpState &S, CodePtr OpPC, const Pointer &Ptr,
                 CheckSubobjectKind CSK) {
   if (!Ptr.isElementPastEnd() && !Ptr.isZeroSizeArray())

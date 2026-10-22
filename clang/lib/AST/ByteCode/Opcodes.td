@@ -1041,6 +1041,7 @@ def CheckAllocations : Opcode {
   let NeedsOpPC = 0;
 }
 def CheckNull : Opcode;
+def CheckNotNull : Opcode;
 
 def BitCastTypeClass : TypeClass {
   let Types = [Uint8, Sint8, Uint16, Sint16, Uint32, Sint32, Uint64, Sint64,

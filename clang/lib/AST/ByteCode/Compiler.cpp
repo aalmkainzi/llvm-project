@@ -2427,6 +2427,13 @@ bool Compiler<Emitter>::visitInitList(ArrayRef<const Expr *> Inits,
       if (!this->visit(Init))
         return false;
 
+      if (this->Ctx.getLangOpts().C23 && InitializingDecl &&
+          InitializingDecl->isConstexpr() &&
+          FieldToInit->Decl->getType()->isPointerType() &&
+          !this->emitCheckNotNull(Init)) {
+        return false;
+      }
+
       if (DefaultInit && !this->emitEndInit(Init))
         return false;
 
